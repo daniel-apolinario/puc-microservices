@@ -60,3 +60,88 @@ note bottom of BD
 end note
 @enduml
 ```
+
+## Arquitetura to-be
+```plantuml
+@startuml
+!theme plain
+skinparam componentStyle uml2
+
+<style>
+document {
+  Padding 5
+}
+node {
+  Padding 20
+}
+</style>
+
+title Arquitetura To-Be: TechBanco (Microsserviços & Cloud)
+
+actor "Novo App Mobile" as App
+actor "Sistemas Externos\n(Bacen/PIX, Open Banking)" as Externo
+
+node "Ambiente Cloud / Kubernetes (Microcontainers)" {
+    
+    component "API Gateway / BFF\n(Autenticação, Roteamento, Rate Limit)" as Gateway
+
+    queue "Message Broker (Ex: Kafka / RabbitMQ)\n<<Eventos Assíncronos / Saga Pattern>>" as Broker
+
+    package "Novos Microsserviços (Domínios Isolados)" {
+        
+        component "Pix Service" as PixMS
+        database "Pix DB" as PixDB
+        PixMS -down-> PixDB
+        
+        component "Open Banking Service" as OBMS
+        database "OpenBanking DB" as OBDB
+        OBMS -down-> OBDB
+        
+        component "Account & Cards Service" as AccountMS
+        database "Accounts DB" as AccountDB
+        AccountMS -down-> AccountDB
+    }
+    
+    package "Ecossistema Legado (Strangler Fig Pattern)" {
+        component "Anti-Corruption Layer (ACL)" as ACL
+        component "Monólito Legado\n(Boletos, Core antigo)" as Monolito
+        database "MySQL Legado" as LegadoDB
+        
+        ACL -down-> Monolito
+        Monolito -down-> LegadoDB
+    }
+}
+
+App -down-> Gateway : REST / GraphQL
+Externo -down-> Gateway : mTLS / APIs Seguras
+
+Gateway -down-> PixMS
+Gateway -down-> OBMS
+Gateway -down-> AccountMS
+Gateway -down-> ACL : Roteamento de rotas não migradas
+
+PixMS .up.> Broker : Publica/Consome
+OBMS .up.> Broker : Publica/Consome
+AccountMS .up.> Broker : Publica/Consome
+ACL .up.> Broker : Sincroniza dados legados
+
+note right of Gateway
+  **Ponto de Entrada Único:**
+  Aplicativo mobile não fala 
+  direto com os serviços.
+end note
+
+note bottom of LegadoDB
+  O monólito vai encolhendo
+  conforme novas lógicas vão 
+  para os microsserviços.
+end note
+
+note right of PixDB
+  **Database per Service:**
+  O serviço PIX pode escalar
+  seu banco independentemente.
+end note
+
+@enduml
+```
