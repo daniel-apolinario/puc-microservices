@@ -62,7 +62,7 @@ end note
 @enduml
 ```
 
-## Fase 1: O lançamento do Mobile App
+## Fase 1: A Fachada (App Mobile consumindo o legado)
 ```plantuml
 @startuml
 !theme plain
@@ -77,42 +77,33 @@ node {
 }
 </style>
 
-title Fase 1: O Lançamento Unificado (App Consome Velho e Novo)
+title Fase 1: A Fachada (App Mobile consumindo o Legado)
 
 actor "Novo App Mobile" as App
-component "API Gateway / BFF" as Gateway
-
-package "Novos Serviços (Cloud)" {
-    component "Pix Service" as PixMS
-    database "Pix DB" as PixDB
-    PixMS -down-> PixDB
-}
+component "API Gateway" as Gateway
 
 package "Ecossistema Legado (Datacenter Físico)" {
-    component "REST Adapter / ACL\n(Nova fachada para o App)" as Adapter
-    component "Monólito Legado\n(Boletos, Conta Corrente)" as Monolito
-    database "MySQL Legado" as LegadoDB
+    component "REST Adapter / ACL\n(Primeira versão da Fachada)" as Adapter
+    component "Monólito Legado\n(Todas as funções do banco)" as Monolito
+    database "MySQL Compartilhado" as LegadoDB
     
     Adapter -down-> Monolito
     Monolito -down-> LegadoDB
 }
 
 App -down-> Gateway
-Gateway -down-> PixMS : Roteia PIX
-Gateway -down-> Adapter : Roteia Boletos\ne Extrato
+Gateway -down-> Adapter : Roteia todo o tráfego\ndo App para o legado
 
-note left of Adapter
-  A equipe do legado constrói 
-  endpoints REST básicos para 
-  o App conseguir pagar boletos.
+note right of Adapter
+  Permite lançar o App rápido,
+  usando a regra de negócio
+  já homologada do banco.
 end note
 
 @enduml
 ```
 
-
-
-## Arquitetura to-be
+## Fase 2: O lançamento do Mobile App
 ```plantuml
 @startuml
 !theme plain
@@ -127,72 +118,107 @@ node {
 }
 </style>
 
-title Arquitetura To-Be: TechBanco (Microsserviços & Cloud)
+title Fase 2: Inovação e Integração (PIX, Conta Digital e Broker)
 
 actor "Novo App Mobile" as App
-actor "Sistemas Externos\n(Bacen/PIX, Open Banking)" as Externo
+component "API Gateway" as Gateway
+queue "Message Broker\n<<Eventos Assíncronos>>" as Broker
 
-node "Ambiente Cloud / Kubernetes (Microcontainers)" {
+package "Novos Serviços (Cloud)" {
+    component "Pix Service" as PixMS
+    component "Digital Account Service" as DigAccountMS
+    database "Novos Bancos Isolados" as CloudDB
     
-    component "API Gateway / BFF\n(Autenticação, Roteamento, Rate Limit)" as Gateway
-
-    queue "Message Broker (Ex: Kafka / RabbitMQ)\n<<Eventos Assíncronos / Saga Pattern>>" as Broker
-
-    package "Novos Microsserviços (Domínios Isolados)" {
-        
-        component "Pix Service" as PixMS
-        database "Pix DB" as PixDB
-        PixMS -down-> PixDB
-        
-        component "Open Banking Service" as OBMS
-        database "OpenBanking DB" as OBDB
-        OBMS -down-> OBDB
-        
-        component "Account & Cards Service" as AccountMS
-        database "Accounts DB" as AccountDB
-        AccountMS -down-> AccountDB
-    }
-    
-    package "Ecossistema Legado (Strangler Fig Pattern)" {
-        component "Anti-Corruption Layer (ACL)" as ACL
-        component "Monólito Legado\n(Boletos, Core antigo)" as Monolito
-        database "MySQL Legado" as LegadoDB
-        
-        ACL -down-> Monolito
-        Monolito -down-> LegadoDB
-    }
+    PixMS -down-> CloudDB
+    DigAccountMS -down-> CloudDB
 }
 
-App -down-> Gateway : REST / GraphQL
-Externo -down-> Gateway : mTLS / APIs Seguras
+package "Ecossistema Legado" {
+    component "Anti-Corruption Layer (ACL)" as ACL
+    component "Monólito Legado\n(Boletos, Contas Antigas)" as Monolito
+    database "MySQL Compartilhado" as LegadoDB
+    
+    ACL -down-> Monolito
+    Monolito -down-> LegadoDB
+}
+
+App -down-> Gateway
+Gateway -down-> PixMS : Roteia PIX
+Gateway -down-> DigAccountMS : Roteia Conta Digital
+Gateway -down-> ACL : Roteia funções antigas
+
+PixMS .up.> Broker
+DigAccountMS .up.> Broker
+ACL .up.> Broker : Integração entre arquiteturas
+
+@enduml
+```
+
+
+
+## Fase 3: O Estrangulamento
+```plantuml
+@startuml
+!theme plain
+skinparam componentStyle uml2
+
+<style>
+document {
+  Padding 5
+}
+node {
+  Padding 20
+}
+</style>
+
+title Fase 3: O Estrangulamento (Padrão Database per Service)
+
+actor "Novo App Mobile" as App
+component "API Gateway" as Gateway
+queue "Message Broker" as Broker
+
+package "Novos Serviços (Cloud)" {
+    component "Pix Service" as PixMS
+    database "Pix DB" as PixDB
+    PixMS -down-> PixDB
+    
+    component "Digital Account Service" as DigAccountMS
+    database "Digital Account DB" as DigAccountDB
+    DigAccountMS -down-> DigAccountDB
+    
+    component "Boleto Service\n(Extraído do legado)" as BoletoMS
+    database "Boleto DB" as BoletoDB
+    BoletoMS -down-> BoletoDB
+}
+
+package "Legado (Encolhendo)" {
+    component "Anti-Corruption Layer (ACL)" as ACL
+    component "Monólito Legado\n(Funções residuais)" as Monolito
+    database "MySQL Compartilhado" as LegadoDB
+    
+    ACL -down-> Monolito
+    Monolito -down-> LegadoDB
+}
+
+App -down-> Gateway
 
 Gateway -down-> PixMS
-Gateway -down-> OBMS
-Gateway -down-> AccountMS
-Gateway -down-> ACL : Roteamento de rotas não migradas
+Gateway -down-> DigAccountMS
+Gateway -down-> BoletoMS : Nova rota de boletos
+Gateway -down-> ACL : Rotas residuais (Core antigo)
 
-PixMS .up.> Broker : Publica/Consome
-OBMS .up.> Broker : Publica/Consome
-AccountMS .up.> Broker : Publica/Consome
-ACL .up.> Broker : Sincroniza dados legados
+PixMS .up.> Broker
+DigAccountMS .up.> Broker
+BoletoMS .up.> Broker
+ACL .up.> Broker : Sincronização final
 
-note right of Gateway
-  **Ponto de Entrada Único:**
-  Aplicativo mobile não fala 
-  direto com os serviços.
+note bottom of BoletoMS
+  Padrão Database per Service:
+  Cada novo serviço escala 
+  o seu próprio banco isolado.
 end note
 
-note bottom of LegadoDB
-  O monólito vai encolhendo
-  conforme novas lógicas vão 
-  para os microsserviços.
-end note
-
-note right of PixDB
-  **Database per Service:**
-  O serviço PIX pode escalar
-  seu banco independentemente.
-end note
-
+@enduml
+```
 @enduml
 ```
