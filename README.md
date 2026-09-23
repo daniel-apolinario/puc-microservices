@@ -103,7 +103,7 @@ end note
 @enduml
 ```
 
-## Fase 2: O lançamento do Mobile App
+## Fase 2: Inovação e Integração
 ```plantuml
 @startuml
 !theme plain
