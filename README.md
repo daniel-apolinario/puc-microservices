@@ -4,8 +4,8 @@ Repositório para materiais da disciplina "Arquitetura de Microsserviços e Micr
 # Estudo de Caso - Banco Pinhão
 
 
-'''mermaid
 
+```mermaid
 flowchart TD
     %% Atores
     Cliente([Clientes do Banco\nPF e PMEs])
