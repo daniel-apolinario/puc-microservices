@@ -149,7 +149,7 @@ Gateway -down-> ACL : Roteia funções antigas
 
 PixMS .up.> Broker
 DigAccountMS .up.> Broker
-ACL .up.> Broker : Integração entre arquiteturas
+ACL .up.> Broker : Adaptador Assíncrono
 
 @enduml
 ```
