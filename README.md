@@ -62,6 +62,56 @@ end note
 @enduml
 ```
 
+## Fase 1: O lançamento do Mobile App
+```plantuml
+@startuml
+!theme plain
+skinparam componentStyle uml2
+
+<style>
+document {
+  Padding 5
+}
+node {
+  Padding 20
+}
+</style>
+
+title Fase 1: O Lançamento Unificado (App Consome Velho e Novo)
+
+actor "Novo App Mobile" as App
+component "API Gateway / BFF" as Gateway
+
+package "Novos Serviços (Cloud)" {
+    component "Pix Service" as PixMS
+    database "Pix DB" as PixDB
+    PixMS -down-> PixDB
+}
+
+package "Ecossistema Legado (Datacenter Físico)" {
+    component "REST Adapter / ACL\n(Nova fachada para o App)" as Adapter
+    component "Monólito Legado\n(Boletos, Conta Corrente)" as Monolito
+    database "MySQL Legado" as LegadoDB
+    
+    Adapter -down-> Monolito
+    Monolito -down-> LegadoDB
+}
+
+App -down-> Gateway
+Gateway -down-> PixMS : Roteia PIX
+Gateway -down-> Adapter : Roteia Boletos\ne Extrato
+
+note left of Adapter
+  A equipe do legado constrói 
+  endpoints REST básicos para 
+  o App conseguir pagar boletos.
+end note
+
+@enduml
+```
+
+
+
 ## Arquitetura to-be
 ```plantuml
 @startuml
