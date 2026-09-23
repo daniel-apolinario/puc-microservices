@@ -5,6 +5,7 @@ Repositório para materiais da disciplina "Arquitetura de Microsserviços e Micr
 
 
 '''mermaid
+
 flowchart TD
     %% Atores
     Cliente([Clientes do Banco\nPF e PMEs])
