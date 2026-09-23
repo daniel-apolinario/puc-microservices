@@ -49,9 +49,10 @@ Spring -down-> BD : Consultas SQL (JDBC/JPA)
 
 note right of Monolito
   **Gargalos (Pain Points):**
-  - Forte acoplamento (MVC)
+  - Forte acoplamento
   - Deploy demorado (Tudo ou nada)
   - Difícil escalar camadas separadamente
+  - Maior complexidade
 end note
 
 note bottom of BD
