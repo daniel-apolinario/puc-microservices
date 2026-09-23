@@ -171,7 +171,7 @@ node {
 }
 </style>
 
-title Fase 3: O Estrangulamento (Padrão Database per Service)
+title Fase 3: O Estrangulamento
 
 actor "Novo App Mobile" as App
 component "API Gateway" as Gateway
@@ -213,9 +213,9 @@ BoletoMS .up.> Broker
 ACL .up.> Broker : Sincronização final
 
 note bottom of BoletoMS
-  Padrão Database per Service:
-  Cada novo serviço escala 
-  o seu próprio banco isolado.
+  O legado é migrado 
+  pedaço por pedaço para 
+  a nova arquitetura.
 end note
 
 @enduml
