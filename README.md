@@ -1,4 +1,4 @@
-# puc-microservices
+# PUC - Arquitetura de Microsserviços e Microcontainer: o Negócio como Serviço
 Repositório para materiais da disciplina "Arquitetura de Microsserviços e Microcontainer: o Negócio como Serviço"
 
 # Estudo de Caso - Banco Pinhão
