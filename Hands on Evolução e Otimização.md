@@ -1,6 +1,7 @@
 # Hands-on: Evolução e Otimização de Microcontainers
 
 **Ambiente de Execução:** Github Codespace (https://github.com/codespaces)
+
 **Objetivo:** Demonstrar na prática a redução do footprint de memória e o aumento da segurança (redução da superfície de ataque) em microsserviços através da evolução de imagens Docker.
 
 ## Parte 1: Preparação do Ambiente e da Aplicação
@@ -226,6 +227,4 @@ docker images
 
 ```
 
-```
 
-```
